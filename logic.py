@@ -2,6 +2,7 @@ import sys
 import asyncio
 import requests
 import telepot
+from textblob import TextBlob
 from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
         
 class RecognizeProduct(telepot.aio.helper.ChatHandler):
@@ -34,7 +35,18 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
             getReturn = r.json()
             status = getReturn['status'];
         object = getReturn['name'];
+        #await self.sender.sendMessage(object)
         return object;
+        
+    async def _getMainNouns(self, object):
+        await self.sender.sendMessage("Extracting nouns...")
+        phrase = TextBlob(object);
+        noun_phrases = phrase.noun_phrases
+        str = "Nouns Identified:\n";
+        for noun in noun_phrases:
+            str +="-"+noun_phrases.pop()+"\n"
+        await self.sender.sendMessage(str);
+        return noun_phrases;
 
     async def open(self, initial_msg, seed):
         await self.sender.sendMessage('Welcome to buybot, brought to you by Team 1 of Queen\'s University!\n\nSend us an image of what you want to buy, or just know more about!')
@@ -49,6 +61,7 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
                 imgUrl = await self._getImageURL(file_id);
                 object = await self._getObjectDescription(imgUrl);
                 await self.sender.sendMessage("Object Description: " + object)
+                nouns = await self._getMainNouns(object);
                 await self.sender.sendMessage(nouns);
         except Exception as e:
             print('caught')
