@@ -62,7 +62,8 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
                 object = await self._getObjectDescription(imgUrl);
                 await self.sender.sendMessage("Object Description: " + object)
                 queryResult = await self._queryAmazon(object);
-                await self.sender.sendMessage(queryResult['URL'])
+                message = queryResult['Name'] + '\n' + queryResult['SALE_PRICE'] + '\n' + queryResult['URL']
+                await self.sender.sendMessage(message)
                 self.close()
         except Exception as e:
             print('caught')
