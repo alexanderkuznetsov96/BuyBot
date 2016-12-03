@@ -8,6 +8,7 @@ from lxml import html
 import csv,os,json
 import requests
 from time import sleep
+import telegram
 from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
         
 class RecognizeProduct(telepot.aio.helper.ChatHandler):
@@ -43,7 +44,6 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
         return object;
         
     async def _queryAmazon(self, object):
-        await self.sender.sendMessage("Querying Amazon...")
         amzn = AmazonSearch()
         result = amzn.search(object)
         return result;
@@ -58,8 +58,11 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
             await self.sender.sendMessage('We\'ve recieved your image!');
             file_id = msg['photo'][-1]['file_id'];
             imgUrl = await self._getImageURL(file_id);
+            await bot.sendChatAction(chat_id=chat_id, action="typing")
             object = await self._getObjectDescription(imgUrl);
             await self.sender.sendMessage("Object Description: " + object)
+            await self.sender.sendMessage("Querying Amazon...")
+            await bot.sendChatAction(chat_id=chat_id, action="typing")
             queryResult = await self._queryAmazon(object);
             if(queryResult == False):
                 await self.sender.sendMessage("Nothing found!");
