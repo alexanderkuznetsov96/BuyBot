@@ -50,26 +50,26 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
 
     async def open(self, initial_msg, seed):
         await self.sender.sendMessage('Welcome to buybot, brought to you by Team 1 of Queen\'s University!\n\nSend us an image of what you want to buy, or just know more about!')
-        return True  # prevent on_message() from being called on the initial message
+        #return True  # prevent on_message() from being called on the initial message
 
     async def on_chat_message(self, msg):
-        try: 
-            content_type, chat_type, chat_id = telepot.glance(msg)
-            if content_type == 'photo':
-                await self.sender.sendMessage('We\'ve recieved your image!');
-                file_id = msg['photo'][-1]['file_id'];
-                imgUrl = await self._getImageURL(file_id);
-                object = await self._getObjectDescription(imgUrl);
-                await self.sender.sendMessage("Object Description: " + object)
-                queryResult = await self._queryAmazon(object);
-                message = queryResult['Name'] + '\n' + queryResult['SALE_PRICE'] + '\n' + queryResult['URL']
+        content_type, chat_type, chat_id = telepot.glance(msg)
+        if content_type == 'photo':
+            await self.sender.sendMessage('We\'ve recieved your image!');
+            file_id = msg['photo'][-1]['file_id'];
+            imgUrl = await self._getImageURL(file_id);
+            object = await self._getObjectDescription(imgUrl);
+            await self.sender.sendMessage("Object Description: " + object)
+            queryResult = await self._queryAmazon(object);
+            if(queryResult == False):
+                await self.sender.sendMessage("Nothing found!");
+            else:
+                message = queryResult['NAME'] + '\n' + queryResult['SALE_PRICE'] + '\n' + queryResult['URL']
                 await self.sender.sendMessage(message)
-                self.close()
-        except Exception as e:
-            print('caught')
+            self.close()
         
     async def on__idle(self, event):
-        await self.sender.sendMessage('session expired')
+        await self.sender.sendMessage('Ran out of time!')
         self.close()
         
 def google_search(search_term, cse_id, api_key, **kwargs):
