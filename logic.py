@@ -8,6 +8,7 @@ from lxml import html
 import csv,os,json
 import requests
 from time import sleep
+from textblob import TextBlob
 import telegram
 from telepot.aio.delegate import per_chat_id, create_open, pave_event_space
         
@@ -42,7 +43,17 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
             status = getReturn['status'];
         object = getReturn['name'];
         return object;
-        
+     
+    def _getMainNouns(self, object):
+        phrase = TextBlob(object)
+        string = ''
+        for u in phrase.tags:
+            if (u[1] == 'RB' or u[1] == 'JJ' or u[1] == 'NN' or u[1] == 'VBG' or u[1] == 'NNS'):
+                string = string + ' ' + u[0]
+            else:
+                break
+        return string
+    
     async def _queryAmazon(self, object):
         amzn = AmazonSearch()
         result = amzn.search(object)
@@ -57,13 +68,18 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
         if content_type == 'photo':
             await self.sender.sendMessage('We\'ve recieved your image!');
             file_id = msg['photo'][-1]['file_id'];
+            await bot.sendChatAction(chat_id=chat_id, action="typing")
             imgUrl = await self._getImageURL(file_id);
             await bot.sendChatAction(chat_id=chat_id, action="typing")
             object = await self._getObjectDescription(imgUrl);
-            await self.sender.sendMessage("Object Description: " + object)
-            await self.sender.sendMessage("Querying Amazon...")
             await bot.sendChatAction(chat_id=chat_id, action="typing")
-            queryResult = await self._queryAmazon(object);
+            await self.sender.sendMessage("Object Description: " + object)
+            await self.sender.sendMessage("Identifying main subject...");
+            await bot.sendChatAction(chat_id=chat_id, action="typing")
+            mainObject = self._getMainNouns(object);
+            await self.sender.sendMessage("Querying Amazon for" + mainObject + "...")
+            await bot.sendChatAction(chat_id=chat_id, action="typing")
+            queryResult = await self._queryAmazon(mainObject);
             if(queryResult == False):
                 await self.sender.sendMessage("Nothing found!");
             else:
