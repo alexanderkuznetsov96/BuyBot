@@ -6,18 +6,11 @@ import requests
 from exceptions import ValueError
 from time import sleep
 
-
-TOKEN = '271351745:AAE_4DTR_vHXXdnEz3Qx08dCdeikOK86Pvo'
-
-my_api_key = 'AIzaSyCwpJ-KXyDpc4M8WRy3KryUwt7J52hyKGQ'
-
-my_cse_id = '006238012235751387519:fgmbxyqr9dc'
-
-def google_search(search_term, api_key, cse_id, **kwargs):
+def google_search(search_term, cse_id, api_key, **kwargs):
     service = build("customsearch", "v1", developerKey=api_key)
     res = service.cse().list(q=search_term, cx=cse_id, **kwargs).execute()
     return res['items']
-	
+    
 def QuickParser(url):
     headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
     page = requests.get(url,headers=headers)
@@ -32,7 +25,7 @@ def QuickParser(url):
             return False
         except Exception as e:
             print e
-			
+            
 def AmazonParser(url):
     headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.90 Safari/537.36'}
     page = requests.get(url,headers=headers)
@@ -73,17 +66,26 @@ def AmazonParser(url):
  
             return data
         except Exception as e:
-            print e	
-	
-searchWord = 'shoes'
+            print e
+            
+            
+class AmazonSearch:
+    def __init__(self):
+        self.my_api_key = 'AIzaSyCwpJ-KXyDpc4M8WRy3KryUwt7J52hyKGQ'
+        self.my_cse_id = '006238012235751387519:fgmbxyqr9dc'
+   
+    def search(self, searchWord):
+        results = google_search(searchWord, self.my_cse_id, self.my_api_key, num=10)
+        try: 
+            results[0]
+        except NameError:
+            print('The search didn\'t find anything')
 
-results = google_search(searchWord, my_api_key, my_cse_id, num=10)
-	
-for u in results:
-    if (QuickParser(u['link'])):
-        results3 = AmazonParser(u['link'])
-        break
-if 'results3' in locals():
-    print(results3['SALE_PRICE'] + ' '+ results3['URL'])
-
-    
+        for u in results:
+            if (QuickParser(u['link'])):
+                return AmazonParser(u['link'])
+        return False
+        
+test = AmazonSearch()
+test2 = test.search('shoes')
+print(test2['URL'])
