@@ -27,7 +27,7 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
         #await self.sender.sendMessage(FileUrl)
         return FileUrl;
         
-    async def _getObjectDescription(self, imgURL):
+    async def _getObjectDescription(self, imgURL, chat_id):
         headers = {"Authorization":"CloudSight qWAN2Kc8W0V5VAUtE2hBLA"}
         payload = {'image_request[remote_image_url]': imgURL, "image_request[locale]": "en-US"}
         url = 'https://api.cloudsightapi.com/image_requests'
@@ -37,6 +37,7 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
         getUrl = 'https://api.cloudsightapi.com/image_responses/' + returnToken;
         status = postReturn['status'];
         while(status=="not completed"):
+            await bot.sendChatAction(chat_id=chat_id, action="typing")
             await asyncio.sleep(1);
             r = requests.get(getUrl, headers=headers)
             getReturn = r.json()
@@ -71,8 +72,7 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
             await bot.sendChatAction(chat_id=chat_id, action="typing")
             imgUrl = await self._getImageURL(file_id);
             await bot.sendChatAction(chat_id=chat_id, action="typing")
-            object = await self._getObjectDescription(imgUrl);
-            await bot.sendChatAction(chat_id=chat_id, action="typing")
+            object = await self._getObjectDescription(imgUrl, chat_id);
             await self.sender.sendMessage("Object Description: " + object)
             await self.sender.sendMessage("Identifying main subject...");
             await bot.sendChatAction(chat_id=chat_id, action="typing")
