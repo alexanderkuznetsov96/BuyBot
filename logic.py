@@ -49,7 +49,7 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
         phrase = TextBlob(object)
         string = ''
         for u in phrase.tags:
-            if (u[1] == 'RB' or u[1] == 'JJ' or u[1] == 'NN' or u[1] == 'VBG' or u[1] == 'NNS'):
+            if (u[1] != 'IN'): #u[1] == 'RB' or u[1] == 'JJ' or u[1] == 'NN' or u[1] == 'VBG' or u[1] == 'NNS' or u[1] == 'VBZ'):
                 string = string + ' ' + u[0]
             else:
                 break
@@ -61,13 +61,13 @@ class RecognizeProduct(telepot.aio.helper.ChatHandler):
         return result;
 
     async def open(self, initial_msg, seed):
-        await self.sender.sendMessage('Welcome to buybot, brought to you by Team 1 of Queen\'s University!\n\nSend us an image of what you want to buy, or just know more about!')
+        await self.sender.sendMessage('Welcome to buybot, brought to you by Anthony, Jamie, and Sasha of Queen\'s University!\n\nSend us an image of something you want to buy, or just want to know more about!')
         #return True  # prevent on_message() from being called on the initial message
 
     async def on_chat_message(self, msg):
         content_type, chat_type, chat_id = telepot.glance(msg)
         if content_type == 'photo':
-            await self.sender.sendMessage('We\'ve recieved your image!');
+            await self.sender.sendMessage('We\'ve received your image!');
             file_id = msg['photo'][-1]['file_id'];
             await bot.sendChatAction(chat_id=chat_id, action="typing")
             imgUrl = await self._getImageURL(file_id);
@@ -156,7 +156,7 @@ def AmazonParser(url):
             
 class AmazonSearch:
     def __init__(self):
-        self.my_api_key = 'AIzaSyCwpJ-KXyDpc4M8WRy3KryUwt7J52hyKGQ'
+        self.my_api_key = 'AIzaSyCLpMrztBxqlVSEPejyadFwrfr0ph3Gw4I'
         self.my_cse_id = '006238012235751387519:fgmbxyqr9dc'
    
     def search(self, searchWord):
